@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Medical Record</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+            background: #f2f2f2;
+        }
+        .form-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 500px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 0.7rem;
+            margin: 0.5rem 0 1rem 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button {
+            width: 100%;
+            padding: 0.7rem;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .message {
+            margin-top: 1rem;
+            text-align: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Add Medical Record</h2>
+        <form id="recordForm">
+            <label>Patient ID:</label>
+            <input type="number" name="patient_id" required>
+
+            <label>Diagnosis:</label>
+            <textarea name="diagnosis" required></textarea>
+
+            <label>Prescription:</label>
+            <textarea name="prescription" required></textarea>
+
+            <label>Doctor Name:</label>
+            <input type="text" name="doctor_name" required>
+
+            <label>Visit Date:</label>
+            <input type="date" name="visit_date" required>
+
+            <button type="submit">Add Record</button>
+        </form>
+
+        <div class="message" id="messageBox"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('recordForm');
+        const messageBox = document.getElementById('messageBox');
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            fetch('/add_medical_record', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                    // Add Authorization header if needed:
+                    // 'Authorization': 'Bearer YOUR_JWT_TOKEN'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(async response => {
+                const result = await response.json();
+                if (response.ok) {
+                    messageBox.style.color = 'green';
+                    messageBox.textContent = result.message || 'Record added successfully!';
+                    form.reset();
+                } else {
+                    messageBox.style.color = 'red';
+                    messageBox.textContent = result.error || 'Error occurred!';
+                }
+            })
+            .catch(error => {
+                messageBox.style.color = 'red';
+                messageBox.textContent = 'Network error: ' + error;
+            });
+        });
+    </script>
+</body>
+</html>
