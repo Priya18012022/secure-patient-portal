@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Patients</title>
+</head>
+<body>
+
+    <h1>Patients List</h1>
+    <table border="1">
+        <tr>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Gender</th>
+            <th>Actions</th>
+        </tr>
+        {% for patient in patients %}
+        <tr>
+            <td>{{ patient.name }}</td>
+            <td>{{ patient.age }}</td>
+            <td>{{ patient.gender }}</td>
+            <td>
+                <button onclick="deletePatient({{ patient.id }})">Delete</button>
+                <!-- You can add Edit button here too -->
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <!-- 👇 Add the script here -->
+    <script>
+    function deletePatient(patientId) {
+        const token = localStorage.getItem("token");
+        
+        if (!token) {
+            alert("Not authorized");
+            return;
+        }
+
+        if (!confirm("Are you sure you want to delete this patient?")) return;
+
+        fetch(`/patients/${patientId}`, {
+            method: "DELETE",
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === "success") {
+                alert("Patient deleted");
+                location.reload();
+            } else {
+                alert("Error: " + data.message);
+            }
+        })
+        .catch(err => alert("An error occurred: " + err));
+    }
+    </script>
+
+</body>
+</html>

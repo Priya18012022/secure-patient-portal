@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Secure Patient Portal</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    section { margin-bottom: 30px; border: 1px solid #ccc; padding: 15px; border-radius: 10px; }
+    input, button, textarea { display: block; margin-top: 10px; width: 300px; }
+  </style>
+</head>
+<body>
+
+  <h1>Secure Patient Portal UI</h1>
+
+  <!-- Register -->
+  <section>
+    <h2>Register</h2>
+    <input id="reg_name" placeholder="Name" />
+    <input id="reg_email" placeholder="Email" />
+    <input id="reg_password" placeholder="Password" type="password" />
+    <button onclick="register()">Register</button>
+  </section>
+
+  <!-- Login -->
+  <section>
+    <h2>Login</h2>
+    <input id="login_email" placeholder="Email" />
+    <input id="login_password" placeholder="Password" type="password" />
+    <button onclick="login()">Login</button>
+  </section>
+
+  <!-- Dashboard -->
+  <section>
+    <h2>Dashboard</h2>
+    <button onclick="getDashboard()">View Dashboard</button>
+    <pre id="dashboard_output"></pre>
+  </section>
+
+  <!-- All Users -->
+  <section>
+    <h2>All Users</h2>
+    <button onclick="getUsers()">Get Users</button>
+    <pre id="users_output"></pre>
+  </section>
+
+  <!-- Add Patient -->
+  <section>
+    <h2>Add Patient</h2>
+    <input id="patient_name" placeholder="Name" />
+    <input id="patient_age" placeholder="Age" />
+    <input id="patient_gender" placeholder="Gender" />
+    <input id="patient_contact" placeholder="Contact" />
+    <input id="patient_address" placeholder="Address" />
+    <textarea id="patient_medical_history" placeholder="Medical History"></textarea>
+    <button onclick="addPatient()">Add Patient</button>
+  </section>
+
+  <!-- Add Medical Record -->
+  <section>
+    <h3>Add Medical Record</h3>
+    <input type="text" id="record_patient_id" placeholder="Patient ID" />
+    <input type="text" id="record_diagnosis" placeholder="Diagnosis" />
+    <input type="text" id="record_treatment" placeholder="Treatment" />
+    <input type="text" id="record_doctor" placeholder="Doctor Name" />
+    <input type="date" id="record_date" placeholder="Date" />
+    <button onclick="addMedicalRecord()">Add Record</button>
+  </section>
+
+  <script>
+    let token = "";
+
+    function register() {
+      fetch('/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: document.getElementById('reg_name').value,
+          email: document.getElementById('reg_email').value,
+          password: document.getElementById('reg_password').value
+        })
+      })
+      .then(res => res.json())
+      .then(alertUser);
+    }
+
+    function login() {
+      fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: document.getElementById('login_email').value,
+          password: document.getElementById('login_password').value
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.token) {
+          token = data.token;
+          alert("Login successful. Token stored.");
+        } else {
+          alert(data.message || "Login failed");
+        }
+      });
+    }
+
+    function getDashboard() {
+      fetch('/dashboard', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(res => res.json())
+      .then(data => document.getElementById('dashboard_output').innerText = JSON.stringify(data, null, 2));
+    }
+
+    function getUsers() {
+      fetch('/users', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      })
+      .then(res => res.json())
+      .then(data => document.getElementById('users_output').innerText = JSON.stringify(data, null, 2));
+    }
+
+    function addPatient() {
+      fetch('/patients', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({
+          name: document.getElementById('patient_name').value,
+          age: document.getElementById('patient_age').value,
+          gender: document.getElementById('patient_gender').value,
+          contact: document.getElementById('patient_contact').value,
+          address: document.getElementById('patient_address').value,
+          medical_history: document.getElementById('patient_medical_history').value
+        })
+      })
+      .then(res => res.json())
+      .then(alertUser);
+    }
+
+ function addMedicalRecord() {
+    const patientId = document.getElementById('record_patient_id').value;
+    const token = localStorage.getItem('token'); // Ensure token is set
+
+    fetch(`/patients/${patientId}/records`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify({
+        diagnosis: document.getElementById('record_diagnosis').value,
+        treatment: document.getElementById('record_treatment').value,
+        doctor: document.getElementById('record_doctor').value,
+        record_date: document.getElementById('record_date').value
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message || 'Record added!');
+    })
+    .catch(err => alert('Error: ' + err));
+  }
+
+    function alertUser(data) {
+      alert(data.message || JSON.stringify(data));
+    }
+  </script>
+
+</body>
+</html>
